@@ -1,16 +1,19 @@
-#base64 encoder-decoder
+#base64 encoder-decoder\
 
-currently only encoder
-works somehow
+encoder-decoder works\
+image encoder wip\
 
 changes:\
-fixed a bug padding where it would interpret the first padding as base64 A(zeroes)/
-started decoding part/
+decoding finished, fixed the bug where it would output an empty string\
+function arguments reduced to only actual inputs.\
+image encoder almost finished\
+
+NOTE: //image encoder works half the way, for some reason it adds unwanted paddings when compared to correct output\
 
 
 todo: \
-complete decoding \
 catching nulls \
 back propogation \
 c++ \
+fix image encoder\
  
