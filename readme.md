@@ -4,16 +4,13 @@ encoder-decoder works\
 image encoder wip\
 
 changes:\
-decoding finished, fixed the bug where it would output an empty string\
-function arguments reduced to only actual inputs.\
-image encoder almost finished\
-
-NOTE: //image encoder works half the way, for some reason it adds unwanted paddings when compared to correct output\
-
+fixed the faulty logic of encode64 function handling the 3rd byte wrongly(typo)\
+hence fixed the encode_image\
+dropped the 4 byte encoding logic for simplicity\
+started decode_image\
 
 todo: \
 catching nulls \
 back propogation \
-c++ \
-fix image encoder\
+fix decode_image malloc issue\
  
