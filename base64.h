@@ -16,11 +16,17 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <stdio.h> 
+
+typedef struct {
+    unsigned char *data;
+    size_t length;
+} DataStruct;
 
 
 unsigned char *encode64(const unsigned char *input, size_t input_length);
-unsigned char *build_decodding_table();
-unsigned char *decode64(const unsigned char *input, size_t input_length);
+int *build_decodding_table();
+DataStruct decode64(const unsigned char *input, size_t input_length);
 void clear_decoding_table();
 void *encode_image(const char *filepath);
 void *decode_image(const char *filepath);
@@ -41,8 +47,9 @@ static unsigned char base64_table[65] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'w', 'x', 'y', 'z', '0', '1', '2', '3',
                                 '4', '5', '6', '7', '8', '9', '+', '/'};
 
-static unsigned char *decoding_table = NULL;
+static int *decoding_table = NULL;
 static int mod[4] = {0, 2, 1}; //for padding 
+
 
 
 
@@ -99,8 +106,8 @@ unsigned char *encode64(const unsigned char *input, size_t input_length){
     return encoded_out;
 }
 
-unsigned char *decode64(const unsigned char *input, size_t input_length){
-
+DataStruct decode64(const unsigned char *input, size_t input_length){
+    DataStruct result = {NULL,0 };
     
 
     if (decoding_table == NULL) {
@@ -108,10 +115,11 @@ unsigned char *decode64(const unsigned char *input, size_t input_length){
     }
 
     if (input_length % 4 != 0) {
-        return NULL; //try catching this
+        return result; //try catching this
     }
 
-    unsigned char decoded_length = (input_length/4)*3;
+    size_t decoded_length = (input_length / 4) * 3;
+
 
     //remove paddings
     if (input[input_length - 1] == '='){
@@ -123,7 +131,7 @@ unsigned char *decode64(const unsigned char *input, size_t input_length){
 
     unsigned char *decoded_out = malloc(decoded_length+1);
     if(decoded_out == NULL){
-        return NULL; //try catching this
+        return result; //try catching this
     }
 
 
@@ -156,15 +164,18 @@ unsigned char *decode64(const unsigned char *input, size_t input_length){
 
 
     *pout = '\0';
-    return decoded_out;
+
+    result.data = decoded_out;
+    result.length = decoded_length;
+    return result;
 }
 
 
 
 
-unsigned char *build_decodding_table(){
+int *build_decodding_table(){
 
-    decoding_table = malloc(256); 
+    decoding_table = malloc(256 * sizeof(int)); 
     if (decoding_table == NULL) {
         return NULL; // try catching this
     }
@@ -177,9 +188,10 @@ unsigned char *build_decodding_table(){
         decoding_table[i] = -1;  
     }
 
-    for (uint32_t i = 0; i < 64; i++) {
+    for (int i = 0; i < 64; i++) {
         decoding_table[(unsigned char)base64_table[i]] = i;
     }
+
 
     return decoding_table;
 }
@@ -236,10 +248,11 @@ void *decode_image(const char *filepath){
     // get the file size
     fseek(file, 0, SEEK_END);
     long file_size = ftell(file);
+    printf("File size: %ld bytes\n", file_size);
     fseek(file, 0, SEEK_SET);  // reset the pointer to the beginning
     
 
-    printf("works till here \n");
+
     unsigned char *file_data = (unsigned char *)malloc(file_size+1);
     if (file_data == NULL) {
         printf("Error: Could not allocate memory for file data\n");
@@ -256,10 +269,11 @@ void *decode_image(const char *filepath){
     }
 
     size_t decoded_length = (file_size / 4) * 3;  // Approximate size for decoded data
-    unsigned char *decoded_output = decode64(file_data, file_size);
+    DataStruct decoded_output = decode64(file_data, file_size);
     //size_t image_data_length = strlen((const char *)decoded_image_data);    // Get the length of the decoded data
-    //build_image(decoded_output, strlen((const char *)decoded_output), "image_base64");
+    build_image(decoded_output.data, decoded_output.length, "image_base64");
     free(file_data);
+    
 }
 
 
@@ -270,9 +284,8 @@ unsigned char *encode_message(const unsigned char *input) {
 }
 
 unsigned char *decode_message(const unsigned char *input) {
- 
     size_t input_length = strlen((const char *)input);
-    return decode64(input, input_length);
+    return decode64(input, input_length).data;
 }
 
 
@@ -319,7 +332,6 @@ void build_image(const unsigned char *data, size_t data_length, const char *file
 
     // Close the file
     fclose(file);
-    printf("Image file %s created successfully\n", output_name);
 }
 
 
